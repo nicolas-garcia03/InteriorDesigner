@@ -18,7 +18,7 @@ public class InteriorDesigner {
         this.height = height;
         this.app = app;
 
-        room = new Room("My Bedroom",20, 12, 0.5,3.5, width, height);
+        room = new Room("My Bedroom",20, 12, 0.5,3.5, width, height, app);
 
         room.addFurniture(new Bed(-8,1,2,4, Color.PINK));
         room.addFurniture(new Bed(-2,-5,4,8, Color.ORANGE));

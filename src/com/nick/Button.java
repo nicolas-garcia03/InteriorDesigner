@@ -20,7 +20,7 @@ public class Button {
         g.setColor(Color.GRAY);
         g.drawRect(box.x, box.y, box.width, box.height);
         g.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 15));
-        g.drawString(text, box.x+(box.width/2)-6, box.y+(box.height/2)+7);
+        g.drawString(text, box.x+(box.width/2)-5, box.y+(box.height/2)+6);
     }
 
     public Rectangle getBox() {
@@ -33,6 +33,10 @@ public class Button {
 
     public void setText(String text) {
         this.text = text;
+    }
+
+    public String getText() {
+        return text;
     }
 
     public void setY(int y) {

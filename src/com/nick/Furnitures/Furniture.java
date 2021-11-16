@@ -1,6 +1,7 @@
 package com.nick.Furnitures;
 
 import java.awt.*;
+import java.awt.geom.Ellipse2D;
 
 public abstract class Furniture {
 
@@ -67,6 +68,65 @@ public abstract class Furniture {
     }
 
     public abstract FurnitureComponent[] getComponents();
+
+    public static Color[] getDefaultColors(ID id) {
+        switch (id) {
+            case CHAIR -> {
+                return new Color[]{new Color(160,140,110)};
+            }
+            case TABLE -> {
+                return new Color[]{new Color(220,190,130)};
+            }
+            case WARDROBE -> {
+                return new Color[]{new Color(120,100,80),new Color(140,120,100),new Color(140,120,100)};
+            }
+            case BED -> {
+                return new Color[]{new Color(240,240,240), new Color(200,20,20)};
+            }
+            default ->  {
+                return new Color[]{Color.BLACK};
+            }
+        }
+    }
+
+    public static int getMainColorIndex(ID id) {
+        switch (id) {
+            case BED -> {
+                return 1;
+            }
+            default ->  {
+                return 0;
+            }
+        }
+    }
+
+    public static Shape[] getIcon(ID id, int x, int y, int boxLength) {
+        switch (id) {
+            case CHAIR -> {
+                return new Rectangle[]{(new Rectangle(x+20,y+20,boxLength-40,boxLength-40))};
+            }
+            case TABLE -> {
+                return new Ellipse2D[]{(new Ellipse2D.Float(x+10,y+10,boxLength-20,boxLength-20))};
+            }
+            case WARDROBE -> {
+                int width = boxLength/2;
+                Rectangle outer = new Rectangle(x+(boxLength-width)/2,y,width,boxLength-4);
+                Rectangle left = new Rectangle(x+5+(boxLength-width)/2,y+2,(width/2)-2,boxLength-6);
+                Rectangle right = new Rectangle(x+left.x+5+(boxLength-width)/2,y+2,(width/2)-2,boxLength-6);
+                return new Rectangle[]{outer,left,right};
+            }
+            case BED -> {
+                int width = boxLength/2;
+                boxLength-=8;
+                Rectangle pillow = new Rectangle(x+((boxLength+8-width)/2),y+8,width,boxLength/4);
+                Rectangle duvet = new Rectangle(x+((boxLength+8-width)/2),(int)(pillow.getY()+pillow.getHeight()),width,(int)(boxLength-pillow.getHeight()-6));
+                return new Rectangle[]{pillow,duvet};
+            }
+            default ->  {
+                return null;
+            }
+        }
+    }
 
     protected FurnitureComponent[] getAllComponents(FurnitureComponent[] mainComponents) {
 

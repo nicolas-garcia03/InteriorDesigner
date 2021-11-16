@@ -6,18 +6,10 @@ public class Panel {
 
     protected Rectangle mainPanel;
     protected boolean isVisible;
-    protected Button editButton;
 
     public Panel(int x, int y, int width, int height) {
         isVisible = false;
         mainPanel = new Rectangle(x, y, width, height);
-        int editButtonWidth = mainPanel.width-60;
-        editButton = new Button("Edit", mainPanel.x + (mainPanel.width-editButtonWidth)/2, mainPanel.y + mainPanel.height - 40, editButtonWidth, 20, new ClickAction() {
-            @Override
-            public void onClick() {
-                System.out.println("Edit!");
-            }
-        });
     }
 
     public Rectangle getMainPanel() {
@@ -41,11 +33,6 @@ public class Panel {
         g.fillRoundRect(mainPanel.x, mainPanel.y, mainPanel.width, mainPanel.height,10,10);
         g.setColor(Color.GRAY);
         g.drawRoundRect(mainPanel.x, mainPanel.y, mainPanel.width, mainPanel.height,10,10);
-        g.setColor(new Color(200,180,180));
-        g.fillRoundRect(editButton.getBox().x, editButton.getBox().y, editButton.getBox().width, editButton.getBox().height,12,12);
-        g.setColor(new Color(120,80,140));
-        g.drawRoundRect(editButton.getBox().x, editButton.getBox().y, editButton.getBox().width, editButton.getBox().height,12,12);
-        g.drawString("Edit", editButton.getBox().x+(int)(editButton.getBox().getWidth()/3), editButton.getBox().y+15);
     }
 
     public void changeSides(int appWidth) {
@@ -63,9 +50,7 @@ public class Panel {
     }
 
     public void onClick(int mouseX, int mouseY) {
-        if (editButton.getBox().contains(mouseX, mouseY)) {
-            editButton.onClick();
-        }
+
     }
 
 }

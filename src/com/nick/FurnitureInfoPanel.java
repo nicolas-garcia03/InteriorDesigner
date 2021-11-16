@@ -8,9 +8,18 @@ public class FurnitureInfoPanel extends Panel {
 
     private Room room;
     private Furniture furniture;
+    private Button removeFurnitureButton;
 
     public FurnitureInfoPanel(Room room) {
         super(room.getAppWidth()-160, 20,140,room.getAppHeight()-180);
+
+        removeFurnitureButton = new Button("Remove", mainPanel.x + ((mainPanel.width - 100) / 2), mainPanel.y + mainPanel.height - 40, 100, 20, new ClickAction() {
+            @Override
+            public void onClick() {
+                room.removeFurniture(furniture);
+                setVisible(false);
+            }
+        });
     }
 
     public void setFurniture(Furniture furniture) {
@@ -29,11 +38,16 @@ public class FurnitureInfoPanel extends Panel {
         g.drawString("X: " + furniture.getX() + " Y: " + furniture.getY(), mainPanel.x+10, mainPanel.y+80);
         g.drawString("Width: " + furniture.getWidth() + " Height: " + furniture.getHeight(), mainPanel.x+10, mainPanel.y+120);
         g.drawString("Area: " + furniture.getFloorArea(), mainPanel.x+10, mainPanel.y+160);
+        removeFurnitureButton.render(g);
     }
 
     @Override
     public void onClick(int mouseX, int mouseY) {
-        super.onClick(mouseX, mouseY);
+        if (removeFurnitureButton.getBox().contains(mouseX, mouseY)) {
+            removeFurnitureButton.onClick();
+        } else {
+            super.onClick(mouseX, mouseY);
+        }
     }
 
 }

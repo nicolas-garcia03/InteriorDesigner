@@ -11,6 +11,7 @@ public class Room {
 
     private String name;
     private int appWidth, appHeight;
+    private Canvas canvas;
     private double tileLength;
     private int tilePixelLength;
     private int centreX, centreY;
@@ -24,16 +25,16 @@ public class Room {
     private boolean roomIsSelected;
     private RoomInfoPanel roomInfoPanel;
     private FurnitureInfoPanel furnitureInfoPanel;
-    private Button catalogueButton;
     private CataloguePanel cataloguePanel;
 
-    public Room(String name, int width, int height, double tileLength, double wallHeight, int appWidth, int appHeight) {
+    public Room(String name, int width, int height, double tileLength, double wallHeight, int appWidth, int appHeight, Canvas canvas) {
 
         this.name = name;
         this.tileLength = tileLength;
         this.wallHeight = wallHeight;
         this.appWidth = appWidth;
         this.appHeight = appHeight;
+        this.canvas = canvas;
 
         selected = null;
         roomIsSelected = false;
@@ -69,7 +70,6 @@ public class Room {
         roomInfoPanel = new RoomInfoPanel(this);
         furnitureInfoPanel = new FurnitureInfoPanel(this);
 
-        catalogueButton = new Button("▲", (appWidth/2)-30,appHeight-20,60,20,() -> cataloguePanel.toggleVisibility());
         cataloguePanel = new CataloguePanel(appWidth, appHeight);
 
     }
@@ -90,6 +90,10 @@ public class Room {
         if (validPosition(f.getX(), f.getY(), (int) f.getWidth(), (int) f.getHeight())) {
             furniture.add(f);
         }
+    }
+
+    public void removeFurniture(Furniture f) {
+        furniture.remove(f);
     }
 
     public boolean validPosition(int x, int y, int width, int height) {
@@ -202,11 +206,9 @@ public class Room {
             cataloguePanel.render(g);
         }
 
-        // ***** - Display catalogue button - *****
+        cataloguePanel.renderButton(g);
 
-        catalogueButton.render(g);
-
-        // ***** - HUD Menu Buttons - *****
+        //TODO: ***** - HUD Menu Buttons - *****
 
     }
 
@@ -266,20 +268,19 @@ public class Room {
             furnitureInfoPanel.setVisible(false);
         }
 
-        //Is catalogue button clicked on?
-        if (catalogueButton.getBox().contains(mouseX, mouseY)) {
-            cataloguePanel.toggleVisibility();
-            catalogueInteracted = true;
-            if (cataloguePanel.isVisible()) {
-                catalogueButton.setText("▼");
-                catalogueButton.setY(cataloguePanel.getMainPanel().y-catalogueButton.getBox().height);
-            } else {
-                catalogueButton.setText("▲");
-                catalogueButton.setY(appHeight-catalogueButton.getBox().height);
+        if (cataloguePanel.isVisible()) {
+            if (cataloguePanel.contains(mouseX, mouseY)) {
+                cataloguePanel.onClick(mouseX, mouseY);
+                catalogueInteracted = true;
+            } else if (cataloguePanel.innerPanelIsClickedOn(mouseX, mouseY)) {
+                cataloguePanel.innerPanelOnClick(mouseX, mouseY);
+                return;
             }
-        } else if (cataloguePanel.isVisible() && cataloguePanel.contains(mouseX, mouseY)) {
-            cataloguePanel.onClick(mouseX, mouseY);
-            catalogueInteracted = true;
+        }
+
+        if (cataloguePanel.openCloseButtonClicked(mouseX, mouseY)) {
+            cataloguePanel.onButtonClicked();
+            return;
         }
 
         if (!roomPreviouslySelected) {
