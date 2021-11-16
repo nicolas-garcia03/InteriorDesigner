@@ -12,17 +12,26 @@ public class EditPanel extends Panel {
     private Button[] buttons;
     private Button exitButton;
     private Shape[] preview;
-    //TODO: CREATE BUTTON, SHOW PREVIEW
+    private Button createButton;
+    private Color[] defaultColors;
+    private int mainColorIndex;
+    private Color cachedInputColor;
 
-    public EditPanel(int x, int y, int width, int height) {
+    public EditPanel(int x, int y, int width, int height, ClickAction createButtonAction) {
         super(x, y, width, height);
         exitButton = new Button("X", x + 10, y + 10, 20, 20, () -> setVisible(false));
+        createButton = new Button("Create", x+((width-60)/2), y+height-40,70,20,createButtonAction);
+        createButton.setExtraPositioning(-20);
 
         widthInput = "2";
-        heightInput = "4";
+        heightInput = "2";
         redInput = "255";
         greenInput = "255";
         blueInput = "255";
+
+        defaultColors = new Color[]{Color.WHITE};
+        mainColorIndex = 0;
+        cachedInputColor = Color.WHITE;
 
         Button widthMinus = new Button("-",120+mainPanel.x,60+mainPanel.y-10,10,10,() -> alterWidthInput(-1));
         Button widthPlus = new Button("+",210+mainPanel.x,60+mainPanel.y-10,10,10,() -> alterWidthInput(1));
@@ -54,8 +63,15 @@ public class EditPanel extends Panel {
 
     @Override
     public void render(Graphics g) {
+
         super.render(g);
+
         exitButton.render(g);
+        createButton.render(g);
+
+        for (Button b : buttons) {
+            b.render(g);
+        }
 
         g.setColor(Color.BLACK);
         g.drawString("Width:", getMainPanel().x+20,getMainPanel().y+60);
@@ -69,8 +85,14 @@ public class EditPanel extends Panel {
         g.drawString("B:",getMainPanel().x+200,getMainPanel().y+140);
         g.drawString(blueInput,getMainPanel().x+240,getMainPanel().y+140);
 
-        for (Button b : buttons) {
-            b.render(g);
+        for (int i = 0; i < preview.length; i++) {
+            if (i == mainColorIndex) {
+                g.setColor(cachedInputColor);
+            } else {
+                g.setColor(defaultColors[i]);
+            }
+            Rectangle r = (Rectangle) preview[i];
+            g.fillRect(r.x, r.y, r.width, r.height);
         }
     }
 
@@ -111,6 +133,7 @@ public class EditPanel extends Panel {
             }
         }
         redInput = Integer.toString(Integer.parseInt(redInput)+amount);
+        cachedInputColor = new Color(Integer.parseInt(redInput),Integer.parseInt(greenInput),Integer.parseInt(blueInput));
     }
 
     private void alterGreenInput(int amount) {
@@ -124,6 +147,7 @@ public class EditPanel extends Panel {
             }
         }
         greenInput = Integer.toString(Integer.parseInt(greenInput)+amount);
+        cachedInputColor = new Color(Integer.parseInt(redInput),Integer.parseInt(greenInput),Integer.parseInt(blueInput));
     }
 
     private void alterBlueInput(int amount) {
@@ -137,22 +161,26 @@ public class EditPanel extends Panel {
             }
         }
         blueInput = Integer.toString(Integer.parseInt(blueInput)+amount);
+        cachedInputColor = new Color(Integer.parseInt(redInput),Integer.parseInt(greenInput),Integer.parseInt(blueInput));
     }
 
     public void setID(ID id) {
         this.id = id;
-        preview = Furniture.getIcon(id, mainPanel.x+mainPanel.width-100, mainPanel.y+40, 80);
-        Color[] defaultColors = Furniture.getDefaultColors(id);
-        int mainColorIndex = Furniture.getMainColorIndex(id);
+        preview = Furniture.getIcon(id, mainPanel.x+mainPanel.width-80, mainPanel.y+20, 80);
+        defaultColors = Furniture.getDefaultColors(id);
+        mainColorIndex = Furniture.getMainColorIndex(id);
         redInput = Integer.toString(defaultColors[mainColorIndex].getRed());
         greenInput = Integer.toString(defaultColors[mainColorIndex].getGreen());
         blueInput = Integer.toString(defaultColors[mainColorIndex].getBlue());
+        cachedInputColor = new Color(defaultColors[mainColorIndex].getRed(),defaultColors[mainColorIndex].getGreen(),defaultColors[mainColorIndex].getBlue());
     }
 
     @Override
     public void onClick(int mouseX, int mouseY) {
         if (exitButton.getBox().contains(mouseX, mouseY)) {
             setVisible(false);
+        } else if (createButton.getBox().contains(mouseX, mouseY)) {
+            createButton.onClick();
         } else {
             for (Button b : buttons) {
                 if (b.getBox().contains(mouseX, mouseY)) {
@@ -160,6 +188,30 @@ public class EditPanel extends Panel {
                 }
             }
         }
+    }
+
+    public ID getID() {
+        return id;
+    }
+
+    public int getFWidth() {
+        return Integer.parseInt(widthInput);
+    }
+
+    public int getFHeight() {
+        return Integer.parseInt(heightInput);
+    }
+
+    public int getR() {
+        return Integer.parseInt(redInput);
+    }
+
+    public int getG() {
+        return Integer.parseInt(greenInput);
+    }
+
+    public int getB() {
+        return Integer.parseInt(blueInput);
     }
 
 }

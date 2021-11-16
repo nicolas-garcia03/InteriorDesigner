@@ -1,8 +1,6 @@
 package com.nick;
 
-import com.nick.Furnitures.Furniture;
-import com.nick.Furnitures.FurnitureComponent;
-
+import com.nick.Furnitures.*;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
@@ -26,6 +24,9 @@ public class Room {
     private RoomInfoPanel roomInfoPanel;
     private FurnitureInfoPanel furnitureInfoPanel;
     private CataloguePanel cataloguePanel;
+    private Furniture beingAdded;
+    private Button confirmAdd;
+    private Button cancelAdd;
 
     public Room(String name, int width, int height, double tileLength, double wallHeight, int appWidth, int appHeight, Canvas canvas) {
 
@@ -38,6 +39,7 @@ public class Room {
 
         selected = null;
         roomIsSelected = false;
+        beingAdded = null;
 
         camX = 0;
         camY = 0;
@@ -70,7 +72,10 @@ public class Room {
         roomInfoPanel = new RoomInfoPanel(this);
         furnitureInfoPanel = new FurnitureInfoPanel(this);
 
-        cataloguePanel = new CataloguePanel(appWidth, appHeight);
+        cataloguePanel = new CataloguePanel(appWidth, appHeight, this);
+
+        confirmAdd = new Button("✓", appWidth-60,appHeight-60,30,30,this::onConfirmAdd);
+        cancelAdd = new Button("x", confirmAdd.getBox().x-20,confirmAdd.getBox().y,confirmAdd.getBox().width,confirmAdd.getBox().height,this::onCancelAdd);
 
     }
 
@@ -87,13 +92,31 @@ public class Room {
     }
 
     public void addFurniture(Furniture f) {
-        if (validPosition(f.getX(), f.getY(), (int) f.getWidth(), (int) f.getHeight())) {
+        if (validPosition(f.getX(), f.getY(), f.getWidth(), f.getHeight())) {
             furniture.add(f);
         }
     }
 
     public void removeFurniture(Furniture f) {
         furniture.remove(f);
+    }
+
+    public void previewNewFurniture(ID id, int width, int height, Color color) {
+        switch (id) {
+            case CHAIR -> beingAdded = new Table(0,0,width,height,color);
+            case BED -> beingAdded = new Bed(0,0,width,height,color);
+        }
+    }
+
+    private void onConfirmAdd() {
+        if (!intersectsFurniture(beingAdded.getX(), beingAdded.getY(), beingAdded.getWidth(), beingAdded.getHeight())) {
+            addFurniture(beingAdded);
+            beingAdded = null;
+        }
+    }
+
+    private void onCancelAdd() {
+        beingAdded = null;
     }
 
     public boolean validPosition(int x, int y, int width, int height) {
@@ -178,6 +201,29 @@ public class Room {
             }
         }
 
+        if (beingAdded != null) {
+            for (FurnitureComponent c : beingAdded.getComponents()) {
+                int[] values = tileToPixel(beingAdded.getX() + c.getXOffset(), beingAdded.getY() + c.getYOffset(), c.getWidth(), c.getHeight());
+                g.setColor(c.getColor());
+                if (c.isOutline()) {
+                    g.drawRect(values[0], values[1], values[2], values[3]);
+                } else {
+                    g.fillRect(values[0], values[1], values[2], values[3]);
+                }
+                if (intersectsFurniture(beingAdded.getX(), beingAdded.getY(), beingAdded.getWidth(), beingAdded.getHeight())) {
+                    g.setColor(new Color(255, 0, 0, 80));
+                    g.fillRect(values[0], values[1], values[2], values[3]);
+                    g.setColor(new Color(200,200,200,50));
+                    g.fillRect(confirmAdd.getBox().x,confirmAdd.getBox().y,confirmAdd.getBox().width,confirmAdd.getBox().height);
+                } else {
+                    g.setColor(new Color(0, 255, 0, 100));
+                    g.fillRect(values[0], values[1], values[2], values[3]);
+                }
+            }
+            confirmAdd.render(g);
+            cancelAdd.render(g);
+        }
+
         // ***** - Highlight the hovered tile - *****
         g.setColor(new Color(255,255,255,60));
         int[] tileMouseCoordinates = pixelToTile(mouseX, mouseY);
@@ -235,6 +281,15 @@ public class Room {
     public void onMouseClicked(int mouseX, int mouseY) {
 
         int[] newCoordinates = pixelToTile(mouseX, mouseY);
+
+        if (beingAdded != null) {
+            if (confirmAdd.getBox().contains(mouseX, mouseY)) {
+                confirmAdd.onClick();
+            } else if (cancelAdd.getBox().contains(mouseX, mouseY)) {
+                cancelAdd.onClick();
+            }
+            return;
+        }
 
         boolean roomPreviouslySelected = roomIsSelected;
         roomIsSelected = false;
@@ -334,10 +389,15 @@ public class Room {
     }
 
     public void onKeyPressed(KeyEvent e) {
-        if (selected == null) {
-            return;
+        if (this.selected != null) {
+            moveSelected(e);
+        } else if (beingAdded != null) {
+            moveBeingAdded(e);
         }
 
+    }
+
+    private void moveSelected(KeyEvent e) {
         switch (e.getKeyCode()) {
             case 37 -> {
                 //Move left
@@ -365,16 +425,42 @@ public class Room {
             }
         }
 
-        if (selected != null) {
-            int[] values = tileToPixel(selected.getX(),selected.getY(),selected.getWidth(),selected.getHeight());
-            if (furnitureInfoPanel.getMainPanel().intersects(new Rectangle(values[0],values[1],values[2],values[3]))) {
-                furnitureInfoPanel.changeSides(appWidth);
+        int[] values = tileToPixel(selected.getX(),selected.getY(),selected.getWidth(),selected.getHeight());
+        if (furnitureInfoPanel.getMainPanel().intersects(new Rectangle(values[0],values[1],values[2],values[3]))) {
+            furnitureInfoPanel.changeSides(appWidth);
+        }
+        if (roomInfoPanel.getMainPanel().intersects(new Rectangle(values[0],values[1],values[2],values[3]))) {
+            roomInfoPanel.changeSides(appWidth);
+        }
+    }
+
+    private void moveBeingAdded(KeyEvent e) {
+        switch (e.getKeyCode()) {
+            case 37 -> {
+                //Move left
+                beingAdded.move('l');
             }
-            if (roomInfoPanel.getMainPanel().intersects(new Rectangle(values[0],values[1],values[2],values[3]))) {
-                roomInfoPanel.changeSides(appWidth);
+            case 38 -> {
+                //Move up
+                beingAdded.move('u');
+            }
+            case 39 -> {
+                //Move right
+                beingAdded.move('r');
+            }
+            case 40 -> {
+                //Move down
+                beingAdded.move('d');
             }
         }
 
+        int[] values = tileToPixel(beingAdded.getX(),beingAdded.getY(),beingAdded.getWidth(),beingAdded.getHeight());
+        if (furnitureInfoPanel.getMainPanel().intersects(new Rectangle(values[0],values[1],values[2],values[3]))) {
+            furnitureInfoPanel.changeSides(appWidth);
+        }
+        if (roomInfoPanel.getMainPanel().intersects(new Rectangle(values[0],values[1],values[2],values[3]))) {
+            roomInfoPanel.changeSides(appWidth);
+        }
     }
 
 }

@@ -20,6 +20,8 @@ public class FurnitureInfoPanel extends Panel {
                 setVisible(false);
             }
         });
+
+        removeFurnitureButton.setExtraPositioning(-20);
     }
 
     public void setFurniture(Furniture furniture) {

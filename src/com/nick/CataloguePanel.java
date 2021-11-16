@@ -15,20 +15,21 @@ public class CataloguePanel extends Panel {
     private int[] previewsX;
     private Shape[][] icons;
     private Button openCloseButton;
-    private EditPanel furnitureSetupPanel;
+    private EditPanel editPanel;
     private int appWidth, appHeight;
+    private Room room;
 
-    public CataloguePanel(int appWidth, int appHeight) {
+    public CataloguePanel(int appWidth, int appHeight, Room room) {
         super(20, appHeight-70, appWidth-40, 70);
         this.appWidth = appWidth;
         this.appHeight = appHeight;
+        this.room = room;
 
         openCloseButton = new Button("▲", (appWidth/2)-30,appHeight-20,60,20, this::toggleVisibility);
 
-        catalogue = new ID[3];
-        catalogue[0] = ID.TABLE;
+        catalogue = new ID[2];
+        catalogue[0] = ID.CHAIR;
         catalogue[1] = ID.BED;
-        catalogue[2] = ID.CHAIR;
 
         previewLength = mainPanel.height-previewOffset;
         previewsPerSlide = (mainPanel.width/previewLength)-1;
@@ -52,12 +53,17 @@ public class CataloguePanel extends Panel {
         int fsPanelX = (appWidth-fsPanelWidth)/2;
         int fsPanelY = (appHeight-fsPanelHeight)/2;
 
-        furnitureSetupPanel = new EditPanel(fsPanelX,fsPanelY,fsPanelWidth,fsPanelHeight);
+        editPanel = new EditPanel(fsPanelX,fsPanelY,fsPanelWidth,fsPanelHeight, this::createFurniture);
 
     }
 
+    public void createFurniture() {
+        onButtonClicked();
+        room.previewNewFurniture(editPanel.getID(), editPanel.getFWidth(), editPanel.getFHeight(), new Color(editPanel.getR(), editPanel.getG(), editPanel.getB()));
+    }
+
     public boolean innerPanelIsClickedOn(int mouseX, int mouseY) {
-        return (furnitureSetupPanel.contains(mouseX, mouseY));
+        return (editPanel.contains(mouseX, mouseY));
     }
 
     @Override
@@ -65,8 +71,8 @@ public class CataloguePanel extends Panel {
         if (mouseY > mainPanel.getY()+previewOffset && mouseY < mainPanel.getY()+mainPanel.getWidth()-previewOffset) {
             for (int i = 0; i < catalogue.length; i++) {
                 if (mouseX > previewsX[i] && mouseX < previewsX[i]+previewLength) {
-                    furnitureSetupPanel.setID(catalogue[i]);
-                    furnitureSetupPanel.setVisible(true);
+                    editPanel.setID(catalogue[i]);
+                    editPanel.setVisible(true);
                 }
             }
         }
@@ -89,7 +95,7 @@ public class CataloguePanel extends Panel {
     }
 
     public void innerPanelOnClick(int mouseX, int mouseY) {
-        furnitureSetupPanel.onClick(mouseX,mouseY);
+        editPanel.onClick(mouseX,mouseY);
     }
 
     @Override
@@ -114,8 +120,8 @@ public class CataloguePanel extends Panel {
 
         openCloseButton.render(g);
 
-        if (furnitureSetupPanel.isVisible()) {
-            furnitureSetupPanel.render(g);
+        if (editPanel.isVisible()) {
+            editPanel.render(g);
         }
 
     }
