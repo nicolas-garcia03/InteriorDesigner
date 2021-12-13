@@ -27,6 +27,8 @@ public class Room {
     private Furniture beingAdded;
     private Button confirmAdd;
     private Button cancelAdd;
+    private Button optionsButton;
+    private OptionsPanel optionsPanel;
 
     public Room(String name, int width, int height, double tileLength, double wallHeight, int appWidth, int appHeight, Canvas canvas) {
 
@@ -75,7 +77,7 @@ public class Room {
         cataloguePanel = new CataloguePanel(appWidth, appHeight, this);
 
         confirmAdd = new Button("✓", appWidth-60,appHeight-60,30,30,this::onConfirmAdd);
-        cancelAdd = new Button("x", confirmAdd.getBox().x-20,confirmAdd.getBox().y,confirmAdd.getBox().width,confirmAdd.getBox().height,this::onCancelAdd);
+        cancelAdd = new Button("x", confirmAdd.getBox().x-40,confirmAdd.getBox().y,confirmAdd.getBox().width,confirmAdd.getBox().height,this::onCancelAdd);
 
     }
 
@@ -99,6 +101,10 @@ public class Room {
 
     public void removeFurniture(Furniture f) {
         furniture.remove(f);
+    }
+
+    public ArrayList<Furniture> getFurniture() {
+        return furniture;
     }
 
     public void previewNewFurniture(ID id, int width, int height, Color color) {
@@ -199,6 +205,7 @@ public class Room {
                     g.fillRect(values[0], values[1], values[2], values[3]);
                 }
             }
+            g.setColor(Color.WHITE);
         }
 
         if (beingAdded != null) {

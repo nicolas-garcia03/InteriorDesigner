@@ -9,7 +9,7 @@ public class Bed extends Furniture {
     public Bed(int x, int y, int width, int height, Color duvetColor) {
         super(x, y, width, height);
 
-        pillow = new FurnitureComponent(0,0,width,height*0.25,Color.WHITE,false, false);
+        pillow = new FurnitureComponent(0,0,width,Math.max(1,height*0.25),Color.WHITE,false, false);
         duvet = new FurnitureComponent(0, (int) Math.floor(pillow.getHeight()),width,height-pillow.getHeight(),duvetColor,false, false);
 
     }

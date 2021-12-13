@@ -21,8 +21,15 @@ public class FurnitureInfoPanel extends Panel {
             }
         });
 
-        removeFurnitureButton.setExtraPositioning(-20);
+        removeFurnitureButton.setExtraPositioning(-22);
     }
+
+    @Override
+    public void changeSides(int appWidth) {
+        super.changeSides(appWidth);
+        removeFurnitureButton.getBox().x = mainPanel.x + ((mainPanel.width - 100) / 2);
+    }
+
 
     public void setFurniture(Furniture furniture) {
         this.furniture = furniture;

@@ -58,6 +58,7 @@ public class CataloguePanel extends Panel {
     }
 
     public void createFurniture() {
+        editPanel.setVisible(false);
         onButtonClicked();
         room.previewNewFurniture(editPanel.getID(), editPanel.getFWidth(), editPanel.getFHeight(), new Color(editPanel.getR(), editPanel.getG(), editPanel.getB()));
     }

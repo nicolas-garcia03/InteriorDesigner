@@ -37,20 +37,6 @@ public abstract class Furniture {
         this.height = height;
     }
 
-    private int x;
-    private int y;
-    private int width;
-    private int height;
-
-    private Furniture thingOnIt;
-
-    public Furniture(int x, int y, int width, int height) {
-        this.x = x;
-        this.y = y;
-        this.width = width;
-        this.height = height;
-    }
-
     public Furniture getThingOnIt() {
         return thingOnIt;
     }
@@ -59,12 +45,45 @@ public abstract class Furniture {
         this.thingOnIt = thingOnIt;
     }
 
+    public int getRotation() {
+        return rotation;
+    }
+
+    public int getCentreX() {
+        return centreX;
+    }
+
+    public int getCentreY() {
+        return centreY;
+    }
+
+    private int x;
+    private int y;
+    private int width;
+    private int height;
+
+    private int centreX, centreY;
+
+    private int rotation; //0 = up, 1 = left, 2 = down, 3 = right
+
+    private Furniture thingOnIt;
+
+    public Furniture(int x, int y, int width, int height) {
+        this.x = x;
+        this.y = y;
+        this.width = width;
+        this.height = height;
+        rotation = 0;
+        centreX = width/2;
+        centreY = height/2;
+    }
+
     public abstract ID getFurnitureID();
 
     public abstract String getName();
 
     public double getFloorArea() {
-        return width*height;
+        return width * height;
     }
 
     public abstract FurnitureComponent[] getComponents();
@@ -72,18 +91,18 @@ public abstract class Furniture {
     public static Color[] getDefaultColors(ID id) {
         switch (id) {
             case CHAIR -> {
-                return new Color[]{new Color(160,140,110)};
+                return new Color[]{new Color(160, 140, 110)};
             }
             case TABLE -> {
-                return new Color[]{new Color(220,190,130)};
+                return new Color[]{new Color(220, 190, 130)};
             }
             case WARDROBE -> {
-                return new Color[]{new Color(120,100,80),new Color(140,120,100),new Color(140,120,100)};
+                return new Color[]{new Color(120, 100, 80), new Color(140, 120, 100), new Color(140, 120, 100)};
             }
             case BED -> {
-                return new Color[]{new Color(240,240,240), new Color(200,20,20)};
+                return new Color[]{new Color(240, 240, 240), new Color(200, 20, 20)};
             }
-            default ->  {
+            default -> {
                 return new Color[]{Color.BLACK};
             }
         }
@@ -94,7 +113,7 @@ public abstract class Furniture {
             case BED -> {
                 return 1;
             }
-            default ->  {
+            default -> {
                 return 0;
             }
         }
@@ -103,26 +122,26 @@ public abstract class Furniture {
     public static Shape[] getIcon(ID id, int x, int y, int boxLength) {
         switch (id) {
             case CHAIR -> {
-                return new Rectangle[]{(new Rectangle(x+20,y+20,boxLength-40,boxLength-40))};
+                return new Rectangle[]{(new Rectangle(x + 20, y + 20, boxLength - 40, boxLength - 40))};
             }
             case TABLE -> {
-                return new Ellipse2D[]{(new Ellipse2D.Float(x+10,y+10,boxLength-20,boxLength-20))};
+                return new Ellipse2D[]{(new Ellipse2D.Float(x + 10, y + 10, boxLength - 20, boxLength - 20))};
             }
             case WARDROBE -> {
-                int width = boxLength/2;
-                Rectangle outer = new Rectangle(x+(boxLength-width)/2,y,width,boxLength-4);
-                Rectangle left = new Rectangle(x+5+(boxLength-width)/2,y+2,(width/2)-2,boxLength-6);
-                Rectangle right = new Rectangle(x+left.x+5+(boxLength-width)/2,y+2,(width/2)-2,boxLength-6);
-                return new Rectangle[]{outer,left,right};
+                int width = boxLength / 2;
+                Rectangle outer = new Rectangle(x + (boxLength - width) / 2, y, width, boxLength - 4);
+                Rectangle left = new Rectangle(x + 5 + (boxLength - width) / 2, y + 2, (width / 2) - 2, boxLength - 6);
+                Rectangle right = new Rectangle(x + left.x + 5 + (boxLength - width) / 2, y + 2, (width / 2) - 2, boxLength - 6);
+                return new Rectangle[]{outer, left, right};
             }
             case BED -> {
-                int width = boxLength/2;
-                boxLength-=8;
-                Rectangle pillow = new Rectangle(x+((boxLength+8-width)/2),y+8,width,boxLength/4);
-                Rectangle duvet = new Rectangle(x+((boxLength+8-width)/2),(int)(pillow.getY()+pillow.getHeight()),width,(int)(boxLength-pillow.getHeight()-6));
-                return new Rectangle[]{pillow,duvet};
+                int width = boxLength / 2;
+                boxLength -= 8;
+                Rectangle pillow = new Rectangle(x + ((boxLength + 8 - width) / 2), y + 8, width, boxLength / 4);
+                Rectangle duvet = new Rectangle(x + ((boxLength + 8 - width) / 2), (int) (pillow.getY() + pillow.getHeight()), width, (int) (boxLength - pillow.getHeight() - 6));
+                return new Rectangle[]{pillow, duvet};
             }
-            default ->  {
+            default -> {
                 return null;
             }
         }
@@ -134,7 +153,7 @@ public abstract class Furniture {
             return mainComponents;
         }
 
-        FurnitureComponent[] components = new FurnitureComponent[mainComponents.length+thingOnIt.getComponents().length];
+        FurnitureComponent[] components = new FurnitureComponent[mainComponents.length + thingOnIt.getComponents().length];
 
         for (int i = 0; i < mainComponents.length; i++) {
             components[i] = mainComponents[i];
@@ -156,8 +175,8 @@ public abstract class Furniture {
     }
 
     public boolean intersects(int fx, int fy, int fw, int fh) {
-        boolean c1 = x+width <= fx; //left of f
-        boolean c2 = y+height <= fy; //above f
+        boolean c1 = x + width <= fx; //left of f
+        boolean c2 = y + height <= fy; //above f
         boolean c3 = x >= fx + fw; // right of f
         boolean c4 = y >= fy + fh; // below f
         return !(c1 || c2 || c3 || c4);
@@ -169,6 +188,48 @@ public abstract class Furniture {
             case 'r' -> x++;
             case 'u' -> y--;
             case 'd' -> y++;
+        }
+    }
+
+    public void rotate(int rotateTo) {
+
+        if (rotation == rotateTo) {
+            return;
+        }
+
+        int centreX, centreY;
+
+        if (rotation % 2 == 0) {
+            centreX = width / 2;
+            centreY = height / 2;
+        } else {
+            centreX = height / 2;
+            centreY = width / 2;
+        }
+
+        boolean antiClockwise = rotation-rotateTo == -1 || rotation-rotateTo == 3;
+        int amountOfRotations;
+        if (antiClockwise) {
+            amountOfRotations = 3;
+        } else if ((rotateTo-rotation)%2 == 0) {
+            amountOfRotations = 2;
+        } else {
+            amountOfRotations = 1;
+        }
+
+        for (int i = 0; i < amountOfRotations; i++) {
+            rotateClockwise(centreX, centreY);
+        }
+
+        rotation = rotateTo;
+
+    }
+
+    private void rotateClockwise(int centreX, int centreY) {
+        for (FurnitureComponent c : getComponents()) {
+            double tempW = c.getWidth();
+            c.setWidth(c.getHeight());
+            c.setHeight(tempW);
         }
     }
 
