@@ -7,37 +7,40 @@ import java.util.ArrayList;
 
 public class Room {
 
-    private String name;
-    private int appWidth, appHeight;
-    private Canvas canvas;
-    private double tileLength;
-    private int tilePixelLength;
-    private int centreX, centreY;
-    private int camX, camY;
+    private String roomName;
+    private int appWidth, appHeight, tilePixelLength, centreX, centreY, camX, camY;;
+    private double tileLength, wallHeight;
     private ArrayList<Integer> tileX, tileY;
     private ArrayList<int[]> wallXY1, wallXY2;
-    private double wallHeight;
-    private Color floorColor;
     private ArrayList<Furniture> furniture;
-    private Furniture selected;
+    private Furniture selected, beingAdded;
     private boolean roomIsSelected;
+    private Color floorColor;
     private RoomInfoPanel roomInfoPanel;
     private FurnitureInfoPanel furnitureInfoPanel;
     private CataloguePanel cataloguePanel;
-    private Furniture beingAdded;
-    private Button confirmAdd;
-    private Button cancelAdd;
-    private Button optionsButton;
-    private OptionsPanel optionsPanel;
+    private Button confirmAdd, cancelAdd, saveButton, exitButton;
+    private int initialFurnitureCount;
 
-    public Room(String name, int width, int height, double tileLength, double wallHeight, int appWidth, int appHeight, Canvas canvas) {
+    public Room(String roomName, int width, int height, double tileLength, double wallHeight, int appWidth, int appHeight, boolean exists) {
+        init(roomName, width, height, tileLength, wallHeight, appWidth, appHeight);
+        if (exists) {
+            loadFurniture("Rooms/" + roomName + "/furniture.txt");
+        }
+    }
 
-        this.name = name;
+    private void init(String roomName, int width, int height, double tileLength, double wallHeight, int appWidth, int appHeight) {
+
+        this.roomName = roomName;
         this.tileLength = tileLength;
         this.wallHeight = wallHeight;
         this.appWidth = appWidth;
         this.appHeight = appHeight;
-        this.canvas = canvas;
+
+        initialFurnitureCount = 0;
+
+        FileHandler.createFolder("Rooms/" + roomName);
+        FileHandler.createNewFile("Rooms/" + roomName, "furniture.txt");
 
         selected = null;
         roomIsSelected = false;
@@ -79,10 +82,72 @@ public class Room {
         confirmAdd = new Button("✓", appWidth-60,appHeight-60,30,30,this::onConfirmAdd);
         cancelAdd = new Button("x", confirmAdd.getBox().x-40,confirmAdd.getBox().y,confirmAdd.getBox().width,confirmAdd.getBox().height,this::onCancelAdd);
 
+        saveButton = new Button("✎", 20, 20, 40, 40, this::saveRoom);
+        exitButton = new Button("⌂", 20+40+20, 20, 40, 40, this::returnToHomeScreen);
+
     }
 
-    public String getName() {
-        return name;
+
+    private void saveRoom() {
+        System.out.println("save");
+        for (int i = 0; i < furniture.size(); i++) {
+            Furniture f = furniture.get(i);
+            StringBuilder data = new StringBuilder(f.getFurnitureID().getIndex() + "," + f.getX() + "," + f.getY() + f.getWidth() + f.getHeight() + ",");
+            for (int j = 0; j < Furniture.getDefaultColors(f.getFurnitureID()).length; j++) {
+                Color c = f.getComponents()[j].getColor();
+                data.append(c.getRed()).append(":").append(c.getGreen()).append(":").append(c.getBlue()).append(":").append(c.getTransparency());
+            }
+            if (i < initialFurnitureCount-1) {
+                //update using raf
+                FileHandler.writeAtLine("Rooms/" + roomName + "/furniture.txt", i, data.toString());
+            } else {
+                //append line to the end
+                FileHandler.appendLine("Rooms/" + roomName + "/furniture.txt", data.toString());
+            }
+        }
+    }
+
+    private void loadFurniture(String path) {
+        String[] data = FileHandler.getLines(path);
+        for (String line : data) {
+            String[] s = line.split(",");
+            String[] colorData = s[5].split(":");
+            Color[] colors = new Color[colorData.length/4];
+            for (int i = 0; i < colors.length; i++) {
+                colors[i] = new Color(Integer.parseInt(colorData[4*i]), Integer.parseInt(colorData[4*i+1]),Integer.parseInt(colorData[4*i+2]),Integer.parseInt(colorData[4*i+3]));
+            }
+            Furniture f;
+            switch (Integer.parseInt(s[0])) {
+                case 0 -> {
+                    //TABLE
+                    f = new Table(Integer.parseInt(s[1]),Integer.parseInt(s[2]),Integer.parseInt(s[3]),Integer.parseInt(s[4]),colors[0]);
+                }
+                case 1 -> {
+                    //CHAIR
+                    f = new Chair(Integer.parseInt(s[1]),Integer.parseInt(s[2]),Integer.parseInt(s[3]),Integer.parseInt(s[4]),colors[0]);
+                }
+                case 2 -> {
+                    //WARDROBE
+                    f = new Wardrobe(Integer.parseInt(s[1]),Integer.parseInt(s[2]),Integer.parseInt(s[3]),Integer.parseInt(s[4]),colors[0],colors[1]);
+                }
+                case 3 -> {
+                    //BED
+                    f = new Bed(Integer.parseInt(s[1]),Integer.parseInt(s[2]),Integer.parseInt(s[3]),Integer.parseInt(s[4]),colors[0]);
+                }
+                default -> {
+                    continue;
+                }
+            }
+            furniture.add(f);
+        }
+    }
+
+    private void returnToHomeScreen() {
+
+    }
+
+    public String getRoomName() {
+        return roomName;
     }
 
     public int getAppWidth() {
@@ -241,7 +306,7 @@ public class Room {
         g.setColor(Color.BLACK);
         g.fillRect(centreX*tilePixelLength,centreY*tilePixelLength,1,1);
 
-        // ***** - Show room info panel if visible - *****
+        // ***** - Show the room info panel if visible - *****
 
         if (roomInfoPanel.isVisible()) {
             roomInfoPanel.render(g);
@@ -261,7 +326,10 @@ public class Room {
 
         cataloguePanel.renderButton(g);
 
-        //TODO: ***** - HUD Menu Buttons - *****
+        // ***** - Render HUD Buttons - *****
+
+        saveButton.render(g);
+        exitButton.render(g);
 
     }
 
@@ -288,6 +356,14 @@ public class Room {
     public void onMouseClicked(int mouseX, int mouseY) {
 
         int[] newCoordinates = pixelToTile(mouseX, mouseY);
+
+        if (saveButton.getBox().contains(mouseX, mouseY)) {
+            saveButton.onClick();
+            return;
+        } else if (exitButton.getBox().contains(mouseX, mouseY)) {
+            exitButton.onClick();
+            return;
+        }
 
         if (beingAdded != null) {
             if (confirmAdd.getBox().contains(mouseX, mouseY)) {
